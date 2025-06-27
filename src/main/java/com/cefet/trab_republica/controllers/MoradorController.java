@@ -5,6 +5,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.cefet.trab_republica.dto.SaldoMoradorDTO;
 import com.cefet.trab_republica.entities.Morador;
 import com.cefet.trab_republica.services.MoradorService;
 
@@ -27,6 +29,11 @@ public class MoradorController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(morador);
+    }
+    
+    @GetMapping("/saldos")
+    public ResponseEntity<List<SaldoMoradorDTO>> getSaldos() {
+        return ResponseEntity.ok(moradorService.getSaldos());
     }
 
     @PostMapping

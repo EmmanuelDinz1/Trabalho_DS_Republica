@@ -1,9 +1,12 @@
 package com.cefet.trab_republica.controllers;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.cefet.trab_republica.dto.GastosTipoDTO;
 import com.cefet.trab_republica.entities.Conta;
 import com.cefet.trab_republica.services.ContaService;
 
@@ -26,6 +29,23 @@ public class ContaController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(conta);
+    }
+
+    @GetMapping("/extrato")
+    public ResponseEntity<List<Conta>> extrato(
+            @RequestParam LocalDate inicio,
+            @RequestParam LocalDate fim) {
+        return ResponseEntity.ok(contaService.extrato(inicio, fim));
+    }
+
+    @GetMapping("/abertas")
+    public ResponseEntity<List<Conta>> contasEmAberto() {
+        return ResponseEntity.ok(contaService.listarContasEmAberto());
+    }
+
+    @GetMapping("/gastos/por-tipo")
+    public ResponseEntity<List<GastosTipoDTO>> gastosPorTipo() {
+        return ResponseEntity.ok(contaService.gastosPorTipo());
     }
 
     @PostMapping

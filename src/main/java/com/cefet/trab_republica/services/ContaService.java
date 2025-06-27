@@ -1,11 +1,13 @@
 package com.cefet.trab_republica.services;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cefet.trab_republica.dto.GastosTipoDTO;
 import com.cefet.trab_republica.entities.Conta;
 import com.cefet.trab_republica.entities.HistoricoConta;
 import com.cefet.trab_republica.entities.Rateio;
@@ -57,6 +59,21 @@ public class ContaService {
 
     public Conta buscarConta(Long id) {
         return contaRepository.findById(id).orElse(null);
+    }
+    
+ // RF-007
+    public List<Conta> extrato(LocalDate inicio, LocalDate fim) {
+        return contaRepository.findByDataVencimentoBetween(inicio, fim);
+    }
+
+    // RF-008a
+    public List<Conta> listarContasEmAberto() {
+        return contaRepository.findContasEmAberto();
+    }
+
+    // RF-008b
+    public List<GastosTipoDTO> gastosPorTipo() {
+        return contaRepository.totalGastosPorTipo();
     }
 
     public Conta atualizarConta(Long id, Conta dadosAtualizados) {

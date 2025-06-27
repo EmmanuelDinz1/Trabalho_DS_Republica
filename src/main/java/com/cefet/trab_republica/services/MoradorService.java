@@ -4,6 +4,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import com.cefet.trab_republica.dto.SaldoMoradorDTO;
 import com.cefet.trab_republica.entities.Morador;
 import com.cefet.trab_republica.repositories.MoradorRepository;
 	
@@ -24,6 +26,10 @@ public class MoradorService {
 
     public List<Morador> listarMoradores() {
         return moradorRepository.findAll();
+    }
+    
+    public List<SaldoMoradorDTO> getSaldos() {
+        return moradorRepository.calcularSaldoMoradores();
     }
 
     public Morador buscarMorador(Long id) {
