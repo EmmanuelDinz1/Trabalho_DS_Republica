@@ -21,12 +21,13 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
+    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder encoder) {
+        // usuário de teste “admin” / “123456”
         UserDetails user = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("123456"))
-                .roles("USER")
-                .build();
+            .username("admin")
+            .password(encoder.encode("123456"))
+            .roles("USER")
+            .build();
         return new InMemoryUserDetailsManager(user);
     }
 
@@ -38,25 +39,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // libera o H2 console
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/h2-console/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            // desabilita CSRF apenas para o console H2
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
-            )
-            // permite iframes do H2 usando a API não-deprecated
-            .headers(headers -> 
-                headers.frameOptions(frame -> frame.disable())
-            )
-            // login form padrão com redirect pós-login
-            .formLogin(form -> form
-                .defaultSuccessUrl("/api/moradores", true)
-                .permitAll()
-            )
-            .logout(logout -> logout.permitAll());
+          // desabilita CSRF para facilitar testes de API (só para dev!)
+          .csrf(csrf -> csrf.disable())
+
+          // necessário para h2-console em iframe
+          .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+
+          // regras de acesso
+          .authorizeHttpRequests(auth -> auth
+              .requestMatchers("/h2-console/**").permitAll()   // libera console H2
+              .anyRequest().authenticated()                    // resto exige login
+          )
+
+          // usa HTTP Basic em vez de formulário
+          .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

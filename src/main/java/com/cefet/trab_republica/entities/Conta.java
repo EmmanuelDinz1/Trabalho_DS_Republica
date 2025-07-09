@@ -22,7 +22,7 @@ public class Conta {
     @Column(nullable = false)
     private double valor;
 
-    @Column(nullable = false)
+    @Column(name = "data_vencimento", nullable = false)
     private LocalDate dataVencimento;
 
     @ManyToOne(optional = false)
@@ -33,13 +33,22 @@ public class Conta {
     @Column(nullable = false)
     private SituacaoConta situacao;
 
-    @OneToMany(mappedBy = "conta", cascade = CascadeType.ALL)
+    /**
+     * Rateios NÃO em cascade: serão persistidos manualmente no service,
+     * para garantir que 'conta' já exista.
+     */
+    @OneToMany(mappedBy = "conta", orphanRemoval = true)
     private List<Rateio> rateios;
 
-    @OneToMany(mappedBy = "conta", cascade = CascadeType.ALL)
+    /**
+     * Histórico pode ser em cascade, pois só se cria após Conta persistida.
+     */
+    @OneToMany(mappedBy = "conta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HistoricoConta> historico;
 
-    // Getters / Setters
+    // ————————————————
+    // Getters & Setters
+    // ————————————————
 
     public Long getId() {
         return id;
@@ -57,10 +66,9 @@ public class Conta {
         this.observacao = observacao;
     }
 
-    // alias para serviço que chamava getDescricao()
     @Transient
     public String getDescricao() {
-        return this.observacao;
+        return observacao;
     }
 
     public TipoConta getTipoConta() {

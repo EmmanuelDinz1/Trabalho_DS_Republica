@@ -1,12 +1,6 @@
 package com.cefet.trab_republica.services;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import com.cefet.trab_republica.dto.ContaDTO;
 import com.cefet.trab_republica.dto.GastosTipoDTO;
 import com.cefet.trab_republica.entities.Conta;
 import com.cefet.trab_republica.entities.HistoricoConta;
@@ -16,6 +10,14 @@ import com.cefet.trab_republica.entities.StatusRateio;
 import com.cefet.trab_republica.repositories.ContaRepository;
 import com.cefet.trab_republica.repositories.HistoricoContaRepository;
 import com.cefet.trab_republica.repositories.RateioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class ContaService {
@@ -29,20 +31,32 @@ public class ContaService {
     @Autowired
     private HistoricoContaRepository historicoRepository;
 
+    /**
+     * Cria uma nova conta, configura situação, persiste sem rateios,
+     * depois salva cada Rateio manualmente e registra histórico.
+     */
+    @Transactional
     public Conta criarConta(Conta conta) {
+        // define situação inicial
         conta.setSituacao(SituacaoConta.PENDENTE);
+
+        // extrai e zera os rateios temporariamente
+        List<Rateio> novosRateios = conta.getRateios();
+        conta.setRateios(Collections.emptyList());
+
+        // salva a conta sem rateios
         Conta salva = contaRepository.save(conta);
 
-        // Registra rateios vinculando à conta recém-criada
-        if (salva.getRateios() != null) {
-            for (Rateio r : salva.getRateios()) {
+        // agora persiste cada rateio, vinculando à conta salva
+        if (novosRateios != null) {
+            for (Rateio r : novosRateios) {
                 r.setConta(salva);
                 r.setStatus(StatusRateio.PENDENTE);
                 rateioRepository.save(r);
             }
         }
 
-        // Adiciona histórico de criação
+        // cria e salva histórico de criação
         HistoricoConta hist = new HistoricoConta();
         hist.setConta(salva);
         hist.setMorador(salva.getResponsavel());
@@ -53,79 +67,95 @@ public class ContaService {
         return salva;
     }
 
-    public List<Conta> listarContas() {
-        return contaRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<ContaDTO> listarContasDTO() {
+        return contaRepository.findAll()
+                              .stream()
+                              .map(ContaDTO::new)
+                              .toList();
     }
 
-    public Conta buscarConta(Long id) {
-        return contaRepository.findById(id).orElse(null);
-    }
-    
- // RF-007
-    public List<Conta> extrato(LocalDate inicio, LocalDate fim) {
-        return contaRepository.findByDataVencimentoBetween(inicio, fim);
+    @Transactional(readOnly = true)
+    public ContaDTO buscarContaDTO(Long id) {
+        return contaRepository.findById(id)
+                              .map(ContaDTO::new)
+                              .orElse(null);
     }
 
-    // RF-008a
-    public List<Conta> listarContasEmAberto() {
-        return contaRepository.findContasEmAberto();
+    @Transactional(readOnly = true)
+    public List<ContaDTO> extratoDTO(LocalDate inicio, LocalDate fim) {
+        return contaRepository.findByDataVencimentoBetween(inicio, fim)
+                              .stream()
+                              .map(ContaDTO::new)
+                              .toList();
     }
 
-    // RF-008b
+    @Transactional(readOnly = true)
+    public List<ContaDTO> listarContasEmAbertoDTO() {
+        return contaRepository.findContasEmAberto()
+                              .stream()
+                              .map(ContaDTO::new)
+                              .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<GastosTipoDTO> gastosPorTipo() {
         return contaRepository.totalGastosPorTipo();
     }
 
+    @Transactional
     public Conta atualizarConta(Long id, Conta dadosAtualizados) {
         Conta existente = contaRepository.findById(id).orElse(null);
         if (existente == null) {
             return null;
         }
-
-        // Impede edição se já quitada ou cancelada
         if (existente.getSituacao() == SituacaoConta.QUITADA ||
             existente.getSituacao() == SituacaoConta.CANCELADA) {
             throw new RuntimeException("Não é possível editar conta quitada ou cancelada.");
         }
 
-        // Atualiza campos
-        existente.setDataVencimento(dadosAtualizados.getDataVencimento());
+        // atualiza campos básicos
+        existente.setObservacao(dadosAtualizados.getObservacao());
         existente.setValor(dadosAtualizados.getValor());
+        existente.setDataVencimento(dadosAtualizados.getDataVencimento());
         existente.setTipoConta(dadosAtualizados.getTipoConta());
         existente.setResponsavel(dadosAtualizados.getResponsavel());
-        existente.setObservacao(dadosAtualizados.getObservacao());
 
-        // Atualiza rateios (exemplo simples: remove antigos e recria)
+        // remove antigos rateios
         rateioRepository.deleteAll(existente.getRateios());
         existente.getRateios().clear();
+
+        // persiste novos rateios
         if (dadosAtualizados.getRateios() != null) {
             for (Rateio r : dadosAtualizados.getRateios()) {
                 r.setConta(existente);
                 r.setStatus(StatusRateio.PENDENTE);
                 rateioRepository.save(r);
-                existente.getRateios().add(r);
             }
         }
 
-        // Salva conta atualizada
+        // salva a conta atualizada
         Conta atualizada = contaRepository.save(existente);
 
-        // Adiciona histórico de atualização
+        // registra histórico de atualização
         HistoricoConta hist = new HistoricoConta();
         hist.setConta(atualizada);
         hist.setMorador(atualizada.getResponsavel());
-        hist.setAcao(SituacaoConta.PENDENTE);
+        hist.setAcao(atualizada.getSituacao());
         hist.setTimestamp(Instant.now());
         historicoRepository.save(hist);
 
         return atualizada;
     }
 
+    @Transactional
     public void deletarConta(Long id) {
         Conta existente = contaRepository.findById(id).orElse(null);
         if (existente != null) {
+            // remove a conta
             contaRepository.deleteById(id);
 
+            // registra histórico de cancelamento
             HistoricoConta hist = new HistoricoConta();
             hist.setConta(existente);
             hist.setMorador(existente.getResponsavel());
@@ -135,37 +165,36 @@ public class ContaService {
         }
     }
 
-    // Replicação de conta: cria uma nova cópia com alterações permitidas
+    @Transactional
     public Conta replicarConta(Long id, Conta dadosAlterados) {
         Conta original = contaRepository.findById(id).orElse(null);
         if (original == null) {
             return null;
         }
 
-        // Cria nova conta baseada na original
+        // monta cópia
         Conta copia = new Conta();
-        copia.setTipoConta(original.getTipoConta());
         copia.setObservacao(original.getObservacao());
+        copia.setValor(original.getValor());
         copia.setDataVencimento(dadosAlterados.getDataVencimento());
-        copia.setValor(dadosAlterados.getValor());
+        copia.setTipoConta(original.getTipoConta());
         copia.setResponsavel(dadosAlterados.getResponsavel());
         copia.setSituacao(SituacaoConta.PENDENTE);
 
+        // salva cópia sem rateios
         Conta salva = contaRepository.save(copia);
 
-        // Replicar rateios da original
-        if (original.getRateios() != null) {
-            for (Rateio rOld : original.getRateios()) {
-                Rateio novoRateio = new Rateio();
-                novoRateio.setConta(salva);
-                novoRateio.setMorador(rOld.getMorador());
-                novoRateio.setValor(rOld.getValor());
-                novoRateio.setStatus(rOld.getStatus());
-                rateioRepository.save(novoRateio);
-            }
+        // replica rateios
+        for (Rateio rOld : original.getRateios()) {
+            Rateio novo = new Rateio();
+            novo.setConta(salva);
+            novo.setMorador(rOld.getMorador());
+            novo.setValor(rOld.getValor());
+            novo.setStatus(rOld.getStatus());
+            rateioRepository.save(novo);
         }
 
-        // Adiciona histórico de replicação
+        // registra histórico de replicação
         HistoricoConta hist = new HistoricoConta();
         hist.setConta(salva);
         hist.setMorador(salva.getResponsavel());

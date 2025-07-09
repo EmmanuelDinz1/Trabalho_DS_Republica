@@ -13,28 +13,9 @@ public class TipoContaDTO {
         this.observacao = observacao;
     }
 
-	public Long getId() {
-		return id;
-	}
+	public Long getId() {return id;}
+	public String getDescricao() {return descricao;}
+	public String getObservacao() {return observacao;}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getDescricao() {
-		return descricao;
-	}
-
-	public void setDescricao(String descricao) {
-		this.descricao = descricao;
-	}
-
-	public String getObservacao() {
-		return observacao;
-	}
-
-	public void setObservacao(String observacao) {
-		this.observacao = observacao;
-	}
 }
 

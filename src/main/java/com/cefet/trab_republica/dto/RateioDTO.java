@@ -1,51 +1,26 @@
 package com.cefet.trab_republica.dto;
+import com.cefet.trab_republica.entities.Rateio;
 
 public class RateioDTO {
-    private Long id;
-    private Long contaId;
-    private Long moradorId;
-    private String status;
+    private final Long id;
+    private final Long moradorId;
+    private final String moradorNome;
+    private final double valor;
+    private final String status;
 
-    public RateioDTO() {}
-
-    public RateioDTO(Long id, Long contaId, Long moradorId, String status) {
-        this.id = id;
-        this.contaId = contaId;
-        this.moradorId = moradorId;
-        this.status = status;
+    public RateioDTO(Rateio r) {
+        this.id          = r.getId();
+        this.moradorId   = r.getMorador().getId();
+        this.moradorNome = r.getMorador().getNome();
+        this.valor       = r.getValor();
+        this.status      = r.getStatus().name();
     }
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Long getContaId() {
-		return contaId;
-	}
-
-	public void setContaId(Long contaId) {
-		this.contaId = contaId;
-	}
-
-	public Long getMoradorId() {
-		return moradorId;
-	}
-
-	public void setMoradorId(Long moradorId) {
-		this.moradorId = moradorId;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
+    public Long getId() { return id; }
+    public Long getMoradorId() { return moradorId; }
+    public String getMoradorNome() { return moradorNome; }
+    public double getValor() { return valor; }
+    public String getStatus() { return status; }
 }
+
 
