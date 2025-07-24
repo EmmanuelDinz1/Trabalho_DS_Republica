@@ -3,7 +3,12 @@ package com.cefet.trab_republica.controllers;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.*;
 
 import com.cefet.trab_republica.dto.SaldoMoradorDTO;
@@ -16,6 +21,14 @@ public class MoradorController {
 
     @Autowired
     private MoradorService moradorService;
+
+    // --- INJEÇÕES NECESSÁRIAS PARA AUTENTICAÇÃO ---
+    @Autowired
+    private InMemoryUserDetailsManager userDetailsService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    // --- FIM DAS INJEÇÕES ---
 
     @GetMapping
     public ResponseEntity<List<Morador>> getAllMoradores() {
@@ -38,8 +51,10 @@ public class MoradorController {
 
     @PostMapping
     public ResponseEntity<Morador> createMorador(@RequestBody Morador morador) {
+        // IMPORTANTE: A senha deve ser codificada antes de salvar!
+        morador.setSenha(passwordEncoder.encode(morador.getSenha()));
         Morador criado = moradorService.cadastrarMorador(morador);
-        return ResponseEntity.status(201).body(criado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
     @PutMapping("/{id}")
@@ -57,17 +72,29 @@ public class MoradorController {
         return ResponseEntity.noContent().build();
     }
 
-    // Endpoint de autenticação simplificada (login)
+
     @PostMapping("/auth")
     public ResponseEntity<String> authenticate(@RequestBody Map<String, String> creds) {
-        String email = creds.get("email");
+        String email = creds.get("email"); // No seu caso, o username é "admin"
         String senha = creds.get("senha");
-        boolean valido = moradorService.autenticar(email, senha);
-        if (!valido) {
-            return ResponseEntity.status(401).body("Credenciais inválidas");
+
+        try {
+            // 1. Carrega os detalhes do usuário pelo username ("admin")
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            // 2. Compara a senha enviada (em texto plano) com a senha armazenada (codificada)
+            if (passwordEncoder.matches(senha, userDetails.getPassword())) {
+                // Senha correta!
+                // TODO: Gerar e retornar um token JWT aqui
+                return ResponseEntity.ok("Autenticado com sucesso");
+            } else {
+                // Senha incorreta
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
+            }
+        } catch (UsernameNotFoundException e) {
+            // Usuário não encontrado
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
-        // TODO: gerar e retornar token JWT mais tarde
-        return ResponseEntity.ok("Autenticado com sucesso");
     }
 
     // Endpoint de recuperação de senha (stub)
