@@ -26,6 +26,7 @@ public class SecurityConfig {
     }
 
     // Expõe o AuthenticationManager do Spring para ser usado no Controller
+    //testando uma mudança
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
