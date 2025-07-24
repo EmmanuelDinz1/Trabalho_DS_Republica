@@ -41,15 +41,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-          // ======================== MUDANÇA 1 ========================
-          // Habilita a configuração de CORS definida no Bean abaixo
+          // Habilita CORS definido no bean abaixo
           .cors(Customizer.withDefaults())
-          // ==========================================================
-
           .csrf(csrf -> csrf.disable())
           .headers(headers -> headers.frameOptions(frame -> frame.disable()))
           .authorizeHttpRequests(auth -> auth
               .requestMatchers("/h2-console/**").permitAll()
+              // Permite POST em /api/moradores (cadastro) e /api/moradores/auth (login)
+              .requestMatchers("/api/moradores", "/api/moradores/auth").permitAll()
+              // Todas as outras requisições exigem autenticação (HTTP Basic)
               .anyRequest().authenticated()
           )
           .httpBasic(Customizer.withDefaults());
@@ -57,28 +57,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ======================== MUDANÇA 2 ========================
     // Bean que define as regras de CORS para a aplicação
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Define as origens permitidas (seu frontend em dev e prod)
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200", 
-            "https://trabalho-ds-republica.onrender.com" // Adicione a URL do seu frontend em produção se for diferente
+            "https://trabalho-ds-republica.onrender.com"
         ));
-        // Define os métodos HTTP permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Define os cabeçalhos permitidos
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
-        // Permite o envio de credenciais (cookies, etc.)
         configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Aplica a configuração a todos os endpoints da sua API
         source.registerCorsConfiguration("/**", configuration);
         
         return source;
     }
-    // ==========================================================
 }
