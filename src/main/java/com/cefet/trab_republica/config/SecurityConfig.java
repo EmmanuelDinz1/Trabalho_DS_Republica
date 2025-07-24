@@ -2,69 +2,62 @@ package com.cefet.trab_republica.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-// --- Imports Adicionais para CORS ---
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
-// --- Fim dos Imports Adicionais ---
 
-@EnableMethodSecurity
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
-
-    @Bean
-    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder encoder) {
-        UserDetails user = User.builder()
-            .username("admin")
-            .password(encoder.encode("123456"))
-            .roles("USER")
-            .build();
-        return new InMemoryUserDetailsManager(user);
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Expõe o AuthenticationManager do Spring para ser usado no Controller
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-          // Habilita CORS definido no bean abaixo
-          .cors(Customizer.withDefaults())
-          .csrf(csrf -> csrf.disable())
-          .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-          .authorizeHttpRequests(auth -> auth
-              .requestMatchers("/h2-console/**").permitAll()
-              // Permite POST em /api/moradores (cadastro) e /api/moradores/auth (login)
-              .requestMatchers("/api/moradores", "/api/moradores/auth").permitAll()
-              // Todas as outras requisições exigem autenticação (HTTP Basic)
-              .anyRequest().authenticated()
-          )
-          .httpBasic(Customizer.withDefaults());
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable()) // Desabilita CSRF, comum em APIs stateless
+            // Define a política de sessão como STATELESS, pois não usaremos sessões
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // Libera o acesso ao console do H2
+                .requestMatchers("/h2-console/**").permitAll()
+                // Libera o endpoint de login para todos
+                .requestMatchers(HttpMethod.POST, "/api/moradores/auth").permitAll()
+                // Libera o endpoint de cadastro de novos moradores para todos
+                .requestMatchers(HttpMethod.POST, "/api/moradores").permitAll()
+                // Todas as outras requisições precisam de autenticação
+                .anyRequest().authenticated()
+            )
+            // a autenticação será via /auth e tokens (no futuro)
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
     }
 
-    // Bean que define as regras de CORS para a aplicação
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:4200", 
-            "https://trabalho-ds-republica.onrender.com"
-        ));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://trabalho-ds-republica-frontend.onrender.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
         configuration.setAllowCredentials(true);
