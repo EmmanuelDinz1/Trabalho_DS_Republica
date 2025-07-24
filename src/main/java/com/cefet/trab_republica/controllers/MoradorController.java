@@ -5,15 +5,14 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.*;
 
+// Assumindo que você criou (ou irá criar) este DTO
+import com.cefet.trab_republica.dto.LoginResponseDTO; 
 import com.cefet.trab_republica.dto.SaldoMoradorDTO;
 import com.cefet.trab_republica.entities.Morador;
 import com.cefet.trab_republica.services.MoradorService;
+import org.springframework.security.crypto.password.PasswordEncoder; // <-- Ainda necessário para o cadastro
 
 @RestController
 @RequestMapping("/api/moradores")
@@ -22,13 +21,12 @@ public class MoradorController {
     @Autowired
     private MoradorService moradorService;
 
-    // --- INJEÇÕES NECESSÁRIAS PARA AUTENTICAÇÃO ---
-    @Autowired
-    private InMemoryUserDetailsManager userDetailsService;
-
+    // A injeção do PasswordEncoder continua útil para codificar a senha no cadastro
     @Autowired
     private PasswordEncoder passwordEncoder;
-    // --- FIM DAS INJEÇÕES ---
+
+    // A injeção do InMemoryUserDetailsManager não é mais necessária aqui,
+    // pois a lógica foi para o MoradorService.
 
     @GetMapping
     public ResponseEntity<List<Morador>> getAllMoradores() {
@@ -51,7 +49,7 @@ public class MoradorController {
 
     @PostMapping
     public ResponseEntity<Morador> createMorador(@RequestBody Morador morador) {
-        // IMPORTANTE: A senha deve ser codificada antes de salvar!
+        // IMPORTANTE: A senha continua sendo codificada aqui antes de salvar
         morador.setSenha(passwordEncoder.encode(morador.getSenha()));
         Morador criado = moradorService.cadastrarMorador(morador);
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
@@ -72,32 +70,27 @@ public class MoradorController {
         return ResponseEntity.noContent().build();
     }
 
-
+    // --- ENDPOINT DE AUTENTICAÇÃO OTIMIZADO ---
     @PostMapping("/auth")
-    public ResponseEntity<String> authenticate(@RequestBody Map<String, String> creds) {
-        String email = creds.get("email"); // No seu caso, o username é "admin"
+    public ResponseEntity<LoginResponseDTO> authenticate(@RequestBody Map<String, String> creds) {
+        String email = creds.get("email");
         String senha = creds.get("senha");
 
-        try {
-            // 1. Carrega os detalhes do usuário pelo username ("admin")
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        // A lógica de autenticação agora está encapsulada no Service
+        Morador moradorAutenticado = moradorService.autenticarEObterMorador(email, senha);
 
-            // 2. Compara a senha enviada (em texto plano) com a senha armazenada (codificada)
-            if (passwordEncoder.matches(senha, userDetails.getPassword())) {
-                // Senha correta!
-                // TODO: Gerar e retornar um token JWT aqui
-                return ResponseEntity.ok("Autenticado com sucesso");
-            } else {
-                // Senha incorreta
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
-            }
-        } catch (UsernameNotFoundException e) {
-            // Usuário não encontrado
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
+        if (moradorAutenticado != null) {
+            // Sucesso: Retorna 200 OK com o ID e o nome do morador
+            var responseDto = new LoginResponseDTO("Autenticado com sucesso!", moradorAutenticado.getId(), moradorAutenticado.getNome());
+            return ResponseEntity.ok(responseDto);
+        } else {
+            // Falha: Retorna 401 Unauthorized com uma mensagem clara
+            var responseDto = new LoginResponseDTO("Credenciais inválidas.", null, null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseDto);
         }
     }
 
-    // Endpoint de recuperação de senha (stub)
+    // Endpoint de recuperação de senha (sem alteração)
     @PostMapping("/recuperar")
     public ResponseEntity<String> recuperarSenha(@RequestBody Map<String, String> body) {
         String email = body.get("email");
