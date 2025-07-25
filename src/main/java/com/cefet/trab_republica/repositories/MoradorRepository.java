@@ -4,9 +4,11 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
 import com.cefet.trab_republica.entities.Morador;
 import com.cefet.trab_republica.dto.SaldoMoradorDTO;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 @Repository
 public interface MoradorRepository extends JpaRepository<Morador, Long> {
@@ -22,6 +24,7 @@ public interface MoradorRepository extends JpaRepository<Morador, Long> {
     """)
     List<SaldoMoradorDTO> calcularSaldoMoradores();
 
-    // Aqui vamos consultar por email (útil para autenticação)
-    Morador findByEmail(String email);
+    UserDetails findByEmail(String email);
+    
+    Optional<Morador> findMoradorByEmail(String email);
 }
