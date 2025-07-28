@@ -13,3 +13,7 @@ INSERT INTO tb_conta (id, observacao, valor, data_vencimento, id_responsavel, id
 INSERT INTO tb_rateio (id, valor, status, id_conta, id_morador) VALUES (1, 1200.00, 'PENDENTE', 1, 1);
 INSERT INTO tb_rateio (id, valor, status, id_conta, id_morador) VALUES (2, 55.00, 'PENDENTE', 2, 1);
 INSERT INTO tb_rateio (id, valor, status, id_conta, id_morador) VALUES (3, 55.00, 'PENDENTE', 2, 2);
+
+INSERT INTO tb_historico_conta (conta_id, morador_id, acao, timestamp) VALUES
+    (1, 1, 'PENDENTE', NOW()),
+    (2, 2, 'PENDENTE', NOW());
