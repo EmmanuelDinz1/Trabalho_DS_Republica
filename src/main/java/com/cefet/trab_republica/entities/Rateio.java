@@ -5,13 +5,11 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-// --- CORREÇÃO 1: Especificar o nome da tabela ---
 @Table(name = "tb_rateio")
 public class Rateio implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -21,15 +19,15 @@ public class Rateio implements Serializable {
     @Column(nullable = false)
     private StatusRateio status;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "id_conta")
     private Conta conta;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "id_morador")
     private Morador morador;
 
-    // Construtores, Getters, Setters, etc. (sem alterações)
+    // Construtores, Getters, Setters, etc...
     public Rateio() {}
 
     public Rateio(Long id, Double valor, StatusRateio status, Conta conta, Morador morador) {
@@ -52,15 +50,11 @@ public class Rateio implements Serializable {
     public void setMorador(Morador morador) { this.morador = morador; }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
+    public int hashCode() { return Objects.hash(id); }
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Rateio rateio = (Rateio) obj;
-        return Objects.equals(id, rateio.id);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Rateio)) return false;
+        return Objects.equals(id, ((Rateio)o).id);
     }
 }

@@ -1,7 +1,7 @@
 -- CORREÇÃO: Adicionada a coluna 'role' e o valor 'ADMIN'
-INSERT INTO tb_morador (id, nome, cpf, data_nascimento, celular, email, contatos_familia, senha, role) VALUES (1, 'Emmanuel Diniz Cheroto', '12345678900', DATE '2000-01-15', '31999990000', 'emmanuel@example.com', '(31)98888-7777', '$2a$12$yJkKgbr6g9nIKCGb/ulOUuWhAi.tvQbQx6B/6Ake1up99LBOgxWA.', 'ADMIN');
+INSERT INTO tb_morador (id, nome, cpf, data_nascimento, celular, email, contatos_familia, senha, role) VALUES (1, 'Emmanuel Diniz Cheroto', '12345678900', DATE '2000-01-15', '31999990000', 'emmanuel@example.com', '(31)98888-7777', '$2a$10$LgI7xPOd4AWE21sA04P7huq4ot1n7j27p60F1uWc92u4xsaQWv9lK', 'ADMIN');
 
-INSERT INTO tb_morador (id, nome, cpf, data_nascimento, celular, email, contatos_familia, senha, role) VALUES (2, 'Gustavo Gusmão', '09876543211', DATE '2001-03-20', '31911112222', 'gustavo@example.com', '(31)92222-3333', '$2a$12$yJkKgbr6g9nIKCGb/ulOUuWhAi.tvQbQx6B/6Ake1up99LBOgxWA.', 'USER');
+INSERT INTO tb_morador (id, nome, cpf, data_nascimento, celular, email, contatos_familia, senha, role) VALUES (2, 'Gustavo Gusmão', '09876543211', DATE '2001-03-20', '31911112222', 'gustavo@example.com', '(31)92222-3333', '$2a$10$LgI7xPOd4AWE21sA04P7huq4ot1n7j27p60F1uWc92u4xsaQWv9lK', 'USER');
 
 INSERT INTO tb_tipoconta (id, descricao, observacao) VALUES (1, 'Aluguel', 'Pagamento mensal do aluguel');
 INSERT INTO tb_tipoconta (id, descricao, observacao) VALUES (2, 'Internet', 'Conta de internet fibra');

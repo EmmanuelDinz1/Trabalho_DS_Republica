@@ -24,7 +24,7 @@ public interface MoradorRepository extends JpaRepository<Morador, Long> {
     """)
     List<SaldoMoradorDTO> calcularSaldoMoradores();
 
-    UserDetails findByEmail(String email);
+    Morador findByEmail(String email);
     
     Optional<Morador> findMoradorByEmail(String email);
 }

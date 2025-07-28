@@ -1,14 +1,16 @@
 package com.cefet.trab_republica.entities;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.time.Instant;
 
 @Entity
 @Table(name = "tb_historico_conta")
-public class HistoricoConta {
+public class HistoricoConta implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
@@ -23,9 +25,11 @@ public class HistoricoConta {
     @Column(nullable = false)
     private SituacaoConta acao;
 
-    @Column(nullable = false)
+    @Column(name = "timestamp", nullable = false)
     private Instant timestamp;
 
+    public HistoricoConta() {}
+    
     // Getters / Setters
     
     public Long getId() {

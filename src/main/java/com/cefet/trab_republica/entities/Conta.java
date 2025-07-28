@@ -8,13 +8,11 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-// --- CORREÇÃO 1: Especificar o nome da tabela ---
 @Table(name = "tb_conta")
 public class Conta implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(length = 255)
@@ -23,14 +21,14 @@ public class Conta implements Serializable {
     @Column(nullable = false)
     private Double valor;
 
-    @Column(nullable = false)
+    @Column(name = "data_vencimento", nullable = false)
     private LocalDate dataVencimento;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "id_responsavel")
     private Morador responsavel;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "id_tipoconta")
     private TipoConta tipoConta;
 
@@ -72,15 +70,11 @@ public class Conta implements Serializable {
     public void setRateios(List<Rateio> rateios) { this.rateios = rateios; }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
+    public int hashCode() { return Objects.hash(id); }
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Conta conta = (Conta) obj;
-        return Objects.equals(id, conta.id);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Conta)) return false;
+        return Objects.equals(id, ((Conta)o).id);
     }
 }

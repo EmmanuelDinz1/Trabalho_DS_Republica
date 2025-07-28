@@ -9,8 +9,7 @@ import java.util.Objects;
 public class TipoConta implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 50)
@@ -53,19 +52,11 @@ public class TipoConta implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
+    public int hashCode() { return Objects.hash(id); }
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        TipoConta other = (TipoConta) obj;
-        return Objects.equals(id, other.id);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TipoConta)) return false;
+        return Objects.equals(id, ((TipoConta)o).id);
     }
 }

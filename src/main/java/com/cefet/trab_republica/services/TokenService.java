@@ -1,17 +1,16 @@
 package com.cefet.trab_republica.services;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-
 import com.cefet.trab_republica.entities.Morador;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.security.Key;
+import java.util.Date;
 
 @Service
 public class TokenService {
@@ -19,35 +18,36 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String generateToken(Morador morador) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            String token = JWT.create()
-                    .withIssuer("republica-api")
-                    .withSubject(morador.getEmail())
-                    .withExpiresAt(genExpirationDate())
-                    .sign(algorithm);
-            return token;
-        } catch (JWTCreationException exception) {
-            throw new RuntimeException("Erro ao gerar o token de autenticação.", exception);
-        }
+    @Value("${api.security.token.expiration}")
+    private Long expiration;
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    public String generateToken(Morador m) {
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + expiration);
+
+        return Jwts.builder()
+            .setSubject(m.getEmail())
+            .claim("id",   m.getId())
+            .claim("name", m.getNome())
+            .setIssuedAt(now)
+            .setExpiration(exp)
+            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .compact();
     }
 
     public String validateToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            return JWT.require(algorithm)
-                    .withIssuer("republica-api")
-                    .build()
-                    .verify(token)
-                    .getSubject();
-        } catch (JWTVerificationException exception) {
-            return "";
-        }
-    }
+        // parseClaimsJws retorna um Jws<Claims>
+        Claims claims = Jwts.parserBuilder()
+            .setSigningKey(getSigningKey())
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
 
-    private Instant genExpirationDate() {
-        // Token expira em 2 horas
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        // getSubject() existe em Claims
+        return claims.getSubject();
     }
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?> 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -24,37 +24,33 @@
   </properties>
 
   <dependencies>
-    <!-- JPA, Web, Security -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
+    <!-- Spring Boot Starters -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
-
-    <!-- JWT (Auth0) -->
-	<dependency>
-	    <groupId>com.auth0</groupId>
-	    <artifactId>java-jwt</artifactId>
-	    <version>4.4.0</version>
-	</dependency>
-
-    <!-- Validação (Bean Validation) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
-    <!-- Bancos de dados -->
+    <!-- Banco de Dados -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -62,9 +58,23 @@
       <artifactId>mysql-connector-j</artifactId>
       <scope>runtime</scope>
     </dependency>
+
+    <!-- JJWT: biblioteca de JWT (versão 0.11.x) -->
     <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>0.11.5</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>0.11.5</version>
       <scope>runtime</scope>
     </dependency>
 
@@ -73,38 +83,32 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-
-      <!-- 1) Maven Compiler Plugin -->
+      <!-- Compilador Java 21 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.0</version>
         <configuration>
           <release>${java.version}</release>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
         </configuration>
       </plugin>
 
-      <!-- 2) Spring Boot Plugin -->
+      <!-- Plugin Spring Boot -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
-
-      <!-- 3) Resources Plugin (opcional) -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>3.1.0</version>
-      </plugin>
-
     </plugins>
   </build>
-
 </project>

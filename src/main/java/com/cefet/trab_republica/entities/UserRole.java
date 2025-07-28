@@ -1,10 +1,10 @@
 package com.cefet.trab_republica.entities;
 
 public enum UserRole {
-    ADMIN("admin"),
-    USER("user");
+    ADMIN("ROLE_ADMIN"),
+    USER("ROLE_USER");
 
-    private String role;
+    private final String role;
 
     UserRole(String role) {
         this.role = role;
