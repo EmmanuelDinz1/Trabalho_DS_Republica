@@ -28,7 +28,7 @@ public class PasswordResetService {
     @Transactional
     public String createTokenFor(String email) {
         Morador m = moradorRepository.findByEmail(email);
-        if (m == null) throw new IllegalArgumentException("E‑mail não encontrado");
+        if (m == null) throw new IllegalArgumentException("E-mail não encontrado");
 
         // remove tokens antigos
         tokenRepository.deleteByMoradorId(m.getId());
