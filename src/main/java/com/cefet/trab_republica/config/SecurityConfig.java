@@ -37,7 +37,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth ->
                     auth
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/password/recuperar", "/api/password/resetar").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/password/forgot", "/api/password/reset").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/moradores").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/moradores/**").hasRole("ADMIN")
